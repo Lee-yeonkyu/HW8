@@ -254,8 +254,21 @@ int deleteFirst(listNode* h) {
  * 리스트의 링크를 역순으로 재 배치
  */
 int invertList(listNode* h) {
-
-
+	listNode* p, * q, * r;
+	if(h->rlink==h || h==NULL) {return 0;}//노드가 하나이거나 공백일 경우 종료
+	p = h; //p는 현재 가리키는 노드 , q는 이전 노드
+	while (1)
+	{
+		r = q;		//r은 q, q는 p를 차례로 따라간다.
+		q = p;
+		p = p->rlink; // p를 미리 옮겨놓고
+		q->llink = p; //q의 llink값 받아주기
+		q->rlink = r; //q의 링크의 방형을 바꿔준다.
+		if(p == h) // p가 h의 값을 받으면
+		{
+			p->rlink=q; //p의 rlink가 q를 가리키게 한다.
+			return 0;}
+	}
 	return 0;
 }
 
