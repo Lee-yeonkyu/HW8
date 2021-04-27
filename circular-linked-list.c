@@ -138,9 +138,6 @@ int freeList(listNode* h){
 	free(h);
 	return 0;
 }
-
-
-
 void printList(listNode* h) {
 	int i = 0;
 	listNode* p;
@@ -161,7 +158,6 @@ void printList(listNode* h) {
 	}
 	printf("  items = %d\n", i);
 
-
 	/* print addresses */
 	printf("\n---checking addresses of links\n");
 	printf("-------------------------------\n");
@@ -174,10 +170,7 @@ void printList(listNode* h) {
 		p = p->rlink;
 		i++;
 	}
-
 }
-
-
 
 /**
  * list에 key에 대한 노드하나를 추가
@@ -190,62 +183,73 @@ int insertLast(listNode* h, int key) {
 	New->llink=NULL;
 
 	if(h->rlink==h){ // h의 rlink가 h 자기자신을 가리킬 떄
-		New->llink=h;
-		New->rlink=h->rlink;
-		h->rlink->llink=New;
-		h->rlink=New;
+		New->llink=h; //New의 llink가 h를 가리키게한다.
+		New->rlink=h->rlink; //New의 rlink와 h의 rlink가 같게 지정해준다.
+		h->rlink->llink=New; //h의 rlink의 llink가 New를 가리키게한다.
+		h->rlink=New; //h의 rlink를 New를 가리키게한다.
 		return 0;}
 	last=h->rlink; //h의 rlink가 가리키는 값을 last로 놓는다.
 	while(last->rlink!=h)// h가 나오지 않을때까지 반복해 마지막 노드를 찾는다.
 		{last=last->rlink;}//last노드의 rlink가 가리키는 곳을 last로 바꾼다.
 
-	New->rlink=last->rlink;
-	New->llink=last;
-	last->rlink=New;
-	h->llink=New;
+	New->rlink=last->rlink; //New의 rlink와 last의 rlink가 같게 지정해준다.
+	New->llink=last; //New의 llink가 last를 가리키게한다.
+	last->rlink=New; //last의 rlink가 New를 가리키게한다.
+	h->llink=New; // h의 llink가 New를 가리키게한다.
 	return 1;
 }
-
-
 /**
  * list의 마지막 노드 삭제
  */
 int deleteLast(listNode* h) {
+	listNode* del;
+	listNode* pre;
 
-
+	pre = h->rlink; // 삭제할 노드의 앞의 노드를 첫번째로 지정.
+	del = h->rlink->rlink; //삭제할 노드를 두번째로 지정.
+	if (h->rlink == h) return -1; //빈노드면 종료.
+	if (del == h) { //노드가 한개라면
+		h->rlink = h->rlink->rlink; //h의 rlink가 h의 rlink의 rlink 링크값을 가르키도록 지정.
+		free(pre); //del 할당해제
+		return 0;
+	}
+	else {
+		while (del->rlink != h) {//노드를 끝까지 반복한다.
+			pre = del; //pre에 del값을 넣어준다.
+			del = del->rlink; // del의 r링크가 가르키는 값으로 del을 바꿔준다.
+		}
+		free(del); //del을 할당 해제해준다.
+		pre->rlink = h;
+		h->llink=pre;
+	}
 	return 1;
 }
-
-
 /**
  * list 처음에 key에 대한 노드하나를 추가
  */
 int insertFirst(listNode* h, int key) {
-
-
 	listNode *Node = (listNode *)malloc(sizeof(listNode));
 		Node->llink=NULL;
 		Node->rlink=NULL;
 		Node->key=key;
-
 		Node->rlink=h->rlink; //노드의 rlink와 h의rlink를 같게해준다.
 		h->rlink->llink=Node; //h의 rlink의 llink가 node를 가리키게 한다.
 		Node->llink=h;
 		h->rlink=Node; //h의rlink가 Node를 가리키게 지정해준다.
 		return 1;
 }
-
 /**
  * list의 첫번째 노드 삭제
  */
 int deleteFirst(listNode* h) {
-
-
-	return 1;
-
+	listNode* del;
+		if (h->rlink == h) { return 0; }  // 공백일시 함수 나간다.
+		del = h->rlink;//h의 rlink가 del을 가르키게한다.
+		h->rlink = h->rlink->rlink; //h의 rlink가 h의 rlink의 rlink 링크값을 가르키도록 지정.
+		h->rlink->llink=h;
+		free(del); //del 할당해제
+		return 0;
 }
-
-
 /**
  * 리스트의 링크를 역순으로 재 배치
  */
@@ -254,8 +258,6 @@ int invertList(listNode* h) {
 
 	return 0;
 }
-
-
 
 /**
  *  리스트를 검색하여, 입력받은 key보다 큰값이 나오는 노드 바로 앞에 삽입
@@ -300,13 +302,32 @@ int insertNode(listNode* h, int key) {
 	pre->rlink=New; // pre의 다음값으로 New를 지정한다.
 	return 0;
 }
-
-
 /**
  * list에서 key에 대한 노드 삭제
  */
 int deleteNode(listNode* h, int key) {
+	listNode* find = (listNode*)malloc(sizeof(listNode));
+	listNode* pre = (listNode*)malloc(sizeof(listNode));
+	listNode* del;
+	pre->rlink = NULL;
+	find = h->rlink; // h의 rlink를 find로 놓는다.
+	while (find->key != key) {//find의 키값과 같은 값이 나올때까지 반복해 원하는 노드를 찾는다.
+		if (find->rlink == h) return 0; //모든 값이 다른경우 함수에서 나간다.
+		pre = find;//find값을 pre에 넣어준다.
+		del = find->rlink;//find가 가르키는 곳을 del이 가르키게 한다.
+		find = find->rlink;//find노드가 가르키는 곳을 find로 바꾼다.
 
+	}
+	if (pre->rlink == NULL){ //첫번째 값이 같다면.
+		del = h->rlink;//h의 rlink가 del을 가르키게한다.
+		h->rlink = h->rlink->rlink; //h의 rlink가 h의 rlink의 rlink 링크값을 가르키도록 지정.
+		h->rlink->llink=h;
+		free(del); //del 할당해제
+		return 0;
+	}
+	pre->rlink = find->rlink; //find가 가르키고있는 값을 pre가 가르킨다.
+	find->rlink->llink=pre;
+	free(del);
 	return 0;
 }
 
