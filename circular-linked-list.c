@@ -54,6 +54,7 @@ int main()
 		printf("----------------------------------------------------------------\n");
 
 		printf("Command = ");
+		fflush(stdout);
 		scanf(" %c", &command);
 
 		switch(command) {
@@ -65,16 +66,19 @@ int main()
 			break;
 		case 'i': case 'I':
 			printf("Your Key = ");
+			fflush(stdout);
 			scanf("%d", &key);
 			insertNode(headnode, key);
 			break;
 		case 'd': case 'D':
 			printf("Your Key = ");
+			fflush(stdout);
 			scanf("%d", &key);
 			deleteNode(headnode, key);
 			break;
 		case 'n': case 'N':
 			printf("Your Key = ");
+			fflush(stdout);
 			scanf("%d", &key);
 			insertLast(headnode, key);
 			break;
@@ -83,6 +87,7 @@ int main()
 			break;
 		case 'f': case 'F':
 			printf("Your Key = ");
+			fflush(stdout);
 			scanf("%d", &key);
 			insertFirst(headnode, key);
 			break;
@@ -122,7 +127,15 @@ int initialize(listNode** h) {
 
 /* 메모리 해제 */
 int freeList(listNode* h){
+	listNode* p = h->rlink;
 
+	listNode* prev = NULL;
+	while(p != h) {
+		prev = p;
+		p = p->rlink;
+		free(prev);
+	}
+	free(h);
 	return 0;
 }
 
@@ -170,7 +183,26 @@ void printList(listNode* h) {
  * list에 key에 대한 노드하나를 추가
  */
 int insertLast(listNode* h, int key) {
+	listNode* last=(listNode*)malloc(sizeof(listNode));
+	listNode* New =(listNode*)malloc(sizeof(listNode)); //새로운 노드를 할당해준다.
+	New->key=key;
+	New->rlink=NULL; //링크 필드는 아직 받지 않았기에 공백 할당.
+	New->llink=NULL;
 
+	if(h->rlink==h){ // h의 rlink가 h 자기자신을 가리킬 떄
+		New->llink=h;
+		New->rlink=h->rlink;
+		h->rlink->llink=New;
+		h->rlink=New;
+		return 0;}
+	last=h->rlink; //h의 rlink가 가리키는 값을 last로 놓는다.
+	while(last->rlink!=h)// h가 나오지 않을때까지 반복해 마지막 노드를 찾는다.
+		{last=last->rlink;}//last노드의 rlink가 가리키는 곳을 last로 바꾼다.
+
+	New->rlink=last->rlink;
+	New->llink=last;
+	last->rlink=New;
+	h->llink=New;
 	return 1;
 }
 
@@ -191,7 +223,16 @@ int deleteLast(listNode* h) {
 int insertFirst(listNode* h, int key) {
 
 
-	return 1;
+	listNode *Node = (listNode *)malloc(sizeof(listNode));
+		Node->llink=NULL;
+		Node->rlink=NULL;
+		Node->key=key;
+
+		Node->rlink=h->rlink; //노드의 rlink와 h의rlink를 같게해준다.
+		h->rlink->llink=Node; //h의 rlink의 llink가 node를 가리키게 한다.
+		Node->llink=h;
+		h->rlink=Node; //h의rlink가 Node를 가리키게 지정해준다.
+		return 1;
 }
 
 /**
@@ -217,10 +258,46 @@ int invertList(listNode* h) {
 
 
 /**
- *  리스트를 검색하여, 입력받은 key보다 큰값이 나오는 노드 바로 앞에 삽입 
+ *  리스트를 검색하여, 입력받은 key보다 큰값이 나오는 노드 바로 앞에 삽입
  **/
 int insertNode(listNode* h, int key) {
 
+	listNode *New=(listNode*)malloc(sizeof(listNode));
+	listNode *temp=(listNode*)malloc(sizeof(listNode));
+	listNode *pre=(listNode*)malloc(sizeof(listNode));
+	New->key=key; temp->key=key;
+	New->llink=NULL;	New->rlink=NULL;
+	pre->llink=NULL;	pre->rlink=NULL;
+	temp=h->rlink;
+
+	if(h->rlink==h){ // h의 rlink가 자기 자신이라면
+		New->rlink=h->rlink; //노드의 rlink를 h의 rlink와 같게해준다.
+		h->rlink->llink=New; //h의 rlink의 llink가 New를 가리키게 한다.
+		New->llink=h;
+		h->rlink=New; //h의 rlink가 New를 가리키게 해준다.
+		return 0;}
+	while((temp->key) < key){//입력받은 키값보다 리스트안의 키값이 클때까지 반복한다.
+		if(temp->rlink==h){//모든 수보다 입력한 키값이 크다면 마지막에 넣어준다.
+			New->rlink=temp->rlink;//temp의 rlink가 가리키는 값을 New도 가리킨다.
+			New->llink=temp;//New의 llink를 temp를 가리키게한다.
+			temp->rlink=New; //temp의 rlink로 New를 가리키게한다.
+			h->llink=New; //h의 llink를 New를 가리키게 바꾼다.
+			return 0;
+		}
+		pre=temp; //temp를 pre에 복사.
+		temp=temp->rlink; //temp노드가 가르키는 곳을 temp로 바꾼다.
+	}
+	if(pre->rlink==NULL){ //첫번째 값으로 넣어줄때.
+		New->rlink=h->rlink; //노드의 rlink를 h의 rlink와 같게한다.
+		h->rlink->llink=New; //r의 rlink의 llink가 New를 가리키게 한다.
+		New->llink=h; //New의 llink가 h를 가리키게한다.
+		h->rlink=New; // h의 rlink가 New를 가리키게한다.
+		return 0;
+	}
+	New->rlink=pre->rlink;//New의 rlink값을 pre의 rlink값과 같게한다.
+	New->llink=pre; //New의 llink로 pre를 가리킨다.
+	pre->rlink->llink=New;//pre의 다음값의 llink로 New를 가리킨다.
+	pre->rlink=New; // pre의 다음값으로 New를 지정한다.
 	return 0;
 }
 
